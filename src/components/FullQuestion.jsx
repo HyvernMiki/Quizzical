@@ -2,17 +2,17 @@ import he from "he";
 import React, { useEffect } from "react";
 import "animate.css";
 
-function Answer(props) {
+function Answer({ selected, off, correct, wrong, selectAnswer, answer }) {
     return (
         <li
             className={`answer animate__animated animate__fadeInRight ${
-                props.selected ? "answer-selected" : ""
-            } ${props.off ? "answer-off" : ""} ${props.correct ? "answer-correct" : ""} ${
-                props.wrong ? "answer-wrong" : ""
+                selected ? "answer-selected" : ""
+            } ${off ? "answer-off" : ""} ${correct ? "answer-correct" : ""} ${
+                wrong ? "answer-wrong" : ""
             }`}
-            onClick={props.selectAnswer}
+            onClick={off || correct || wrong ? () => {} : selectAnswer}
         >
-            {props.answer}
+            {answer}
         </li>
     );
 }
@@ -27,6 +27,9 @@ export default function FullQuestion(props) {
                 id: i,
                 answer: answer,
                 selected: false,
+                wrong: false,
+                off: false,
+                correct: false,
             };
         })
     );
@@ -37,9 +40,32 @@ export default function FullQuestion(props) {
                 answer={arr.answer}
                 selectAnswer={() => selectAnswer(arr.id)}
                 selected={arr.selected}
+                wrong={arr.wrong}
+                off={arr.off}
+                correct={arr.correct}
             />
         ))
     );
+
+    useEffect(() => {
+        if (props.userAnswer) {
+            setAnswers((prevAnswers) => {
+                return prevAnswers.map((answer) => {
+                    if (!props.userAnswer) return { ...answer };
+                    else if (answer.answer === props.userAnswer.correctAnswer) {
+                        return { ...answer, correct: true };
+                    } else if (
+                        props.userAnswer.answer !== props.userAnswer.correctAnswer &&
+                        props.userAnswer.answer === answer.answer
+                    ) {
+                        return { ...answer, wrong: true };
+                    } else {
+                        return { ...answer, off: true };
+                    }
+                });
+            });
+        }
+    }, [props.userAnswer]);
 
     useEffect(() => {
         setAnswersMapped(
@@ -49,6 +75,9 @@ export default function FullQuestion(props) {
                     answer={arr.answer}
                     selectAnswer={() => selectAnswer(arr.id)}
                     selected={arr.selected}
+                    wrong={arr.wrong}
+                    off={arr.off}
+                    correct={arr.correct}
                 />
             ))
         );
